@@ -6,7 +6,9 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     defaultTitle: "random variable"
   };
   var settings = {
-    appendElSpec: "#graph"
+    appendElSpec: "#graph",
+    nodeCtrls: "#nodeCtrls",
+    edgeCtrls: "#edgeCtrls"
   };
   // define graphcreator object
   var GraphCreator = function(svg, nodes, edges){
@@ -259,11 +261,19 @@ document.onload = (function(d3, saveAs, Blob, undefined){
 
   GraphCreator.prototype.replaceSelectNode = function(d3Node, nodeData){
     var thisGraph = this;
+    var controls = d3.select('#nodeName').data([nodeData.title]);
     d3Node.classed(this.consts.selectedClass, true);
     if (thisGraph.state.selectedNode){
       thisGraph.removeSelectFromNode();
+
     }
     thisGraph.state.selectedNode = nodeData;
+
+    d3.select('.node-text-data').remove();
+
+
+    controls.append("text").attr("class", "node-text-data").text("Node: " + nodeData.title);
+
   };
 
   GraphCreator.prototype.removeSelectFromNode = function(){
@@ -599,6 +609,8 @@ document.onload = (function(d3, saveAs, Blob, undefined){
   var svg = d3.select(settings.appendElSpec).append("svg")
         .attr("width", width)
         .attr("height", height);
+
+
   var graph = new GraphCreator(svg, nodes, edges);
       graph.setIdCt(2);
   graph.updateGraph();

@@ -4,8 +4,8 @@ body{
     overflow:hidden;
 }
 
-p{ 
-     text-align: center; 
+p{
+     text-align: center;
      overflow: overlay;
      position: relative;
 }
@@ -18,6 +18,25 @@ body{
     -ms-user-select: none;
     user-select: none;
     background-color: rgb(248, 248, 248)
+}
+
+
+.control-panel{
+  width: 50%;
+  height: 200px;
+}
+
+#nodeCtrls{
+  float: left;
+}
+
+#edgeCtrls{
+  margin-left: 50%
+}
+
+#graph{
+  top: 200px;,
+  left: 0;
 }
 
 #toolbox{
