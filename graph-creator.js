@@ -70,9 +70,12 @@ document.onload = (function(d3, saveAs, Blob, undefined){
 
     thisGraph.drag = d3.behavior.drag()
           .origin(function(d){
+            console.log(d.x)
+            console.log(d.y)
             return {x: d.x, y: d.y};
           })
           .on("drag", function(args){
+
             thisGraph.state.justDragged = true;
             thisGraph.dragmove.call(thisGraph, args);
           })
@@ -314,8 +317,14 @@ document.onload = (function(d3, saveAs, Blob, undefined){
   GraphCreator.prototype.circleMouseDown = function(d3node, d){
     var thisGraph = this,
         state = thisGraph.state;
+        console.log('a')
+        console.log(state.justDragged)
     d3.event.stopPropagation();
+    console.log('b')
+    console.log(state.justDragged)
     state.mouseDownNode = d;
+    console.log('c')
+    console.log(state.justDragged)
     if (d3.event.shiftKey){
       state.shiftNodeDrag = d3.event.shiftKey;
       // reposition dragged directed edge
@@ -323,6 +332,8 @@ document.onload = (function(d3, saveAs, Blob, undefined){
         .attr('d', 'M' + d.x + ',' + d.y + 'L' + d.x + ',' + d.y);
       return;
     }
+    console.log('livin')
+    console.log(state.justDragged)
   };
 
   /* place editable text on node in place of svg text */
@@ -370,6 +381,8 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     var thisGraph = this,
         state = thisGraph.state,
         consts = thisGraph.consts;
+        console.log('ya butt')
+        console.log(state.justDragged)
     // reset the states
     state.shiftNodeDrag = false;
     d3node.classed(consts.connectClass, false);
@@ -379,7 +392,8 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     if (!mouseDownNode) return;
 
     thisGraph.dragLine.classed("hidden", true);
-
+    console.log('ya butt')
+    console.log(state.justDragged)
     if (mouseDownNode !== d){
       // we're in a different node: create new edge for mousedown edge and add to graph
       var newEdge = {source: mouseDownNode, target: d};
@@ -397,6 +411,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
       // we're in the same node
       if (state.justDragged) {
         // dragged, not clicked
+
         state.justDragged = false;
       } else{
         // clicked, not dragged
