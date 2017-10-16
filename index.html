@@ -8,10 +8,15 @@
     <div class="control-panel-container" id='ctrls'>
     <div class="control-panel" id="nodeCtrls">
       <div  id="nodeName">
-        <text class="node-text-data">Node:</text>
+        <text class="node-data-title">Node:</text>
       </div>
       <div  id="nodeParams">
-        <text class="node-text-data">Job Parameters common to every task of this node:</text>
+        <text class="node-data-paramdesc">Job Parameters common to every task of this node:</text>
+        <table id="node-data-param">
+          <tr> <td>Name</td> <td>Value</td> </tr>
+          <tr> <td><input type="text" id="node-param-name"></td> <td><input type="text" id="node-param-value"></td><td><button id="node-add-param" type="button">Add Parameter</button> </td>
+
+        </table>
       </div>
     </div>
     <div class="control-panel" id="edgeCtrls">
@@ -26,7 +31,9 @@
 
     <script src="//d3js.org/d3.v3.js" charset="utf-8"></script>
     <script src="//cdn.jsdelivr.net/filesaver.js/0.1/FileSaver.min.js"></script>
+
     <script src="graph-creator.js"></script>
+
   </body>
 
 </html>

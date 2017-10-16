@@ -83,6 +83,11 @@ document.onload = (function(d3, saveAs, Blob, undefined){
             // todo check if edge-mode is selected
           });
 
+    // Activate button
+    d3.select("#node-add-param").on("click", function(){thisGraph.addParamToNode.call(thisGraph);});
+
+
+
     // listen for key events
     d3.select(window).on("keydown", function(){
       thisGraph.svgKeyDown.call(thisGraph);
@@ -272,10 +277,8 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     }
     thisGraph.state.selectedNode = nodeData;
 
-    d3.select('.node-text-data').remove();
-
-
-    controls.append("text").attr("class", "node-text-data").text("Node: " + nodeData.title);
+    d3.select('.node-data-title').remove();
+    controls.append("text").attr("class", "node-data-title").text("Node: " + nodeData.title);
 
   };
 
@@ -455,7 +458,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     } else if (state.graphMouseDown && d3.event.shiftKey){
       // clicked not dragged from svg
       var xycoords = d3.mouse(thisGraph.svgG.node()),
-          d = {id: thisGraph.idct++, title: consts.defaultTitle, x: xycoords[0], y: xycoords[1]};
+          d = {id: thisGraph.idct++, title: consts.defaultTitle, x: xycoords[0], y: xycoords[1], kwargs:{}};
       thisGraph.nodes.push(d);
       thisGraph.updateGraph();
       // make title of text immediently editable
@@ -597,7 +600,60 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     svg.attr("width", x).attr("height", y);
   };
 
+  GraphCreator.prototype.addParamToNode = function(){
 
+    var thisGraph = this;
+
+    var name = d3.select("#node-param-name").node().value;
+    var value = d3.select("#node-param-value").node().value;
+
+    thisGraph.state.selectedNode.kwargs[name] = value;
+
+    thisGraph.updateNodeParamTable(thisGraph.state.selectedNode);
+
+  };
+
+  GraphCreator.prototype.updateNodeParamScope = function(isChecked, nodeData){
+    console.log(isChecked)
+  }
+
+  GraphCreator.prototype.updateNodeParamTable = function(nodeData){
+    var thisGraph = this;
+
+
+    var old_rows = d3.select("#node-data-param").selectAll('tbody').selectAll('.node-param-row')
+    // remove old rows always because associative arrays arent ordered
+    old_rows.remove();
+
+    // add data
+    var rows  =d3.select("#node-data-param").selectAll('tbody').selectAll('.node-param-row').data(d3.entries(nodeData.kwargs));
+
+    var new_rows = rows.enter().append("tr").attr("class","node-param-row")
+    new_rows.append("td").html(function (d){return d["key"];});
+    new_rows.append("td").html(function (d){return d["value"];});
+
+    new_rows.append("td").html("Used in command")
+                                 .append('input').attr('type','checkbox')
+                                 .attr("class",function (d){return d["key"]+"-command-scope";})
+                                 .on('change',  function(){thisGraph.updateNodeParamScope.call(thisGraph, this.checked, nodeData);})
+    new_rows.append("td").html("Used in filename generator")
+                                 .append('input').attr('type','checkbox')
+                                 .attr("class",function (d){return d["key"]+"-filename-scope";})
+                                 .on('change',  function(){thisGraph.updateNodeParamScope.call(thisGraph, this.checked, nodeData);})
+     new_rows.append("td").html("Used in requirement generator")
+                                  .append('input').attr('type','checkbox')
+                                  .attr("class",function (d){return d["key"]+"-req-scope";})
+                                  .on('change',  function(){thisGraph.updateNodeParamScope.call(thisGraph, this.checked, nodeData);})
+    new_rows.append("td").html("Used in split generator")
+                                 .append('input').attr('type','checkbox')
+                                 .attr("class",function (d){return d["key"]+"-split-scope";})
+                                 .on('change',  function(){thisGraph.updateNodeParamScope.call(thisGraph, this.checked, nodeData);})
+
+    //  rows.exit().remove();
+    //console.log(table);
+    //console.log(rows);
+    console.log(nodeData.kwargs);
+  };
 
   /**** MAIN ****/
 
@@ -629,4 +685,6 @@ document.onload = (function(d3, saveAs, Blob, undefined){
   var graph = new GraphCreator(svg, nodes, edges);
       graph.setIdCt(2);
   graph.updateGraph();
+
+
 })(window.d3, window.saveAs, window.Blob);
