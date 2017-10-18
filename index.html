@@ -10,6 +10,11 @@
       <div  id="nodeName">
         <text class="node-data-title">Node:</text>
       </div>
+      <div id="nodeSplit">
+        <text> Parameters that split this node's individual jobs: </text>
+        <select id="node-data-split">
+        </select>
+      </div>
       <div  id="nodeParams">
         <text class="node-data-paramdesc">Job Parameters common to every task of this node:</text>
         <table id="node-data-param">
@@ -31,6 +36,10 @@
 
     <script src="//d3js.org/d3.v3.js" charset="utf-8"></script>
     <script src="//cdn.jsdelivr.net/filesaver.js/0.1/FileSaver.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.4/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.4/js/select2.min.js"></script>
+
 
     <script src="graph-creator.js"></script>
 

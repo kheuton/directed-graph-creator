@@ -86,7 +86,15 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     // Activate button
     d3.select("#node-add-param").on("click", function(){thisGraph.addParamToNode.call(thisGraph);});
 
-
+    // Activate node split selector
+    $("#node-data-split").select2({
+      tags: true,
+      placeholder: "Select a State",
+      multiple: true,
+      allowClear: true,
+      width: '100%'
+    });
+    console.log('DONT SEE THIS MORE THAN ONCE')
 
     // listen for key events
     d3.select(window).on("keydown", function(){
@@ -280,6 +288,9 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     d3.select('.node-data-title').remove();
     controls.append("text").attr("class", "node-data-title").text("Node: " + nodeData.title);
 
+    thisGraph.updateNodeParamTable(nodeData);
+    thisGraph.updateNodeSplitSelect(nodeData);
+
   };
 
   GraphCreator.prototype.removeSelectFromNode = function(){
@@ -320,14 +331,11 @@ document.onload = (function(d3, saveAs, Blob, undefined){
   GraphCreator.prototype.circleMouseDown = function(d3node, d){
     var thisGraph = this,
         state = thisGraph.state;
-        console.log('a')
-        console.log(state.justDragged)
+
     d3.event.stopPropagation();
-    console.log('b')
-    console.log(state.justDragged)
+
     state.mouseDownNode = d;
-    console.log('c')
-    console.log(state.justDragged)
+
     if (d3.event.shiftKey){
       state.shiftNodeDrag = d3.event.shiftKey;
       // reposition dragged directed edge
@@ -335,8 +343,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
         .attr('d', 'M' + d.x + ',' + d.y + 'L' + d.x + ',' + d.y);
       return;
     }
-    console.log('livin')
-    console.log(state.justDragged)
+
   };
 
   /* place editable text on node in place of svg text */
@@ -384,8 +391,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     var thisGraph = this,
         state = thisGraph.state,
         consts = thisGraph.consts;
-        console.log('ya butt')
-        console.log(state.justDragged)
+
     // reset the states
     state.shiftNodeDrag = false;
     d3node.classed(consts.connectClass, false);
@@ -395,8 +401,7 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     if (!mouseDownNode) return;
 
     thisGraph.dragLine.classed("hidden", true);
-    console.log('ya butt')
-    console.log(state.justDragged)
+
     if (mouseDownNode !== d){
       // we're in a different node: create new edge for mousedown edge and add to graph
       var newEdge = {source: mouseDownNode, target: d};
@@ -458,7 +463,8 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     } else if (state.graphMouseDown && d3.event.shiftKey){
       // clicked not dragged from svg
       var xycoords = d3.mouse(thisGraph.svgG.node()),
-          d = {id: thisGraph.idct++, title: consts.defaultTitle, x: xycoords[0], y: xycoords[1], kwargs:{}};
+          d = {id: thisGraph.idct++, title: consts.defaultTitle, x: xycoords[0], y: xycoords[1],
+               kwargs:{}, split:[]};
       thisGraph.nodes.push(d);
       thisGraph.updateGraph();
       // make title of text immediently editable
@@ -484,6 +490,8 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     // make sure repeated key presses don't register for each keydown
     if(state.lastKeyDown !== -1) return;
 
+
+
     state.lastKeyDown = d3.event.keyCode;
     var selectedNode = state.selectedNode,
         selectedEdge = state.selectedEdge;
@@ -491,6 +499,11 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     switch(d3.event.keyCode) {
     case consts.BACKSPACE_KEY:
     case consts.DELETE_KEY:
+      // Make textboxes work
+      if(d3.event.target.nodeName.toLowerCase() === 'input') {
+        break;
+      }
+
       d3.event.preventDefault();
       if (selectedNode){
         thisGraph.nodes.splice(thisGraph.nodes.indexOf(selectedNode), 1);
@@ -607,14 +620,65 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     var name = d3.select("#node-param-name").node().value;
     var value = d3.select("#node-param-value").node().value;
 
-    thisGraph.state.selectedNode.kwargs[name] = value;
+    thisGraph.state.selectedNode.kwargs[name] = {
+                                              "value": value,
+                                              "scope": ["filepath", "dependencies", "split", "work"]};
 
     thisGraph.updateNodeParamTable(thisGraph.state.selectedNode);
 
   };
 
-  GraphCreator.prototype.updateNodeParamScope = function(isChecked, nodeData){
-    console.log(isChecked)
+  GraphCreator.prototype.updateNodeParamScope = function(param, selectedValue, nodeData){
+    nodeData.kwargs[param]["scope"] = selectedValue;
+  }
+
+  GraphCreator.prototype.updateNodeSplitSelect = function(nodeData){
+      var thisGraph = this;
+      var selector = d3.select("#node-data-split");
+      // Rebuild the control cause i'm dumb
+
+      var currentSplits = nodeData.split;
+      // Construct data from the splits so we have options in the select element
+      var splitOptions = [];
+      for (var i = 0; i < currentSplits.length; i++) {
+
+          var thisSplit = currentSplits[i]
+          var thisData = {'id': thisSplit,
+                          'text': thisSplit
+                         }
+          splitOptions.push(thisData)
+      }
+
+      console.log('removin')
+      $("#node-data-split").select2('destroy').off('change')
+      $("#node-data-split").select2({
+        tags: true,
+        placeholder: "Select a State",
+        multiple: true,
+        allowClear: true,
+        width: '100%',
+        data: l.splitOptions
+      });
+
+
+
+      $("#node-data-split").on('change', function(){
+        thisGraph.updateNodeSplit.call(thisGraph, nodeData)
+      });
+
+      console.log(currentSplits)
+      console.log(nodeData.title)
+      $("#node-data-split").val(currentSplits).trigger('change')
+      console.log($("#node-data-split").val())
+
+  }
+
+  GraphCreator.prototype.updateNodeSplit = function( nodeData){
+
+      var splits =$("#node-data-split").val();
+      console.log("GONNA CHANGE: "+nodeData.title)
+      console.log(splits)
+      nodeData.split = splits;
   }
 
   GraphCreator.prototype.updateNodeParamTable = function(nodeData){
@@ -630,29 +694,53 @@ document.onload = (function(d3, saveAs, Blob, undefined){
 
     var new_rows = rows.enter().append("tr").attr("class","node-param-row")
     new_rows.append("td").html(function (d){return d["key"];});
-    new_rows.append("td").html(function (d){return d["value"];});
+    new_rows.append("td").html(function (d){return d["value"]["value"];});
 
-    new_rows.append("td").html("Used in command")
-                                 .append('input').attr('type','checkbox')
-                                 .attr("class",function (d){return d["key"]+"-command-scope";})
-                                 .on('change',  function(){thisGraph.updateNodeParamScope.call(thisGraph, this.checked, nodeData);})
-    new_rows.append("td").html("Used in filename generator")
-                                 .append('input').attr('type','checkbox')
-                                 .attr("class",function (d){return d["key"]+"-filename-scope";})
-                                 .on('change',  function(){thisGraph.updateNodeParamScope.call(thisGraph, this.checked, nodeData);})
-     new_rows.append("td").html("Used in requirement generator")
-                                  .append('input').attr('type','checkbox')
-                                  .attr("class",function (d){return d["key"]+"-req-scope";})
-                                  .on('change',  function(){thisGraph.updateNodeParamScope.call(thisGraph, this.checked, nodeData);})
-    new_rows.append("td").html("Used in split generator")
-                                 .append('input').attr('type','checkbox')
-                                 .attr("class",function (d){return d["key"]+"-split-scope";})
-                                 .on('change',  function(){thisGraph.updateNodeParamScope.call(thisGraph, this.checked, nodeData);})
+    var select = new_rows.append("td").html("Used in:")
+                                 .append('select')
+                                 .attr("paramName",function (d){return d["key"];})
+                                 .attr("id",function (d){return d["key"]+"-command-scope";})
+                                 .attr("class", "node-param-scope")
+                                 .attr("multiple", true)
 
-    //  rows.exit().remove();
-    //console.log(table);
-    //console.log(rows);
-    console.log(nodeData.kwargs);
+    select.append("option").attr("value","work").html("Command")
+          .each(function (d) {
+            var option = d3.select(this);
+            if (nodeData.kwargs[d["key"]]["scope"].includes("work")) {
+              option.attr("selected",true)
+            }
+           })
+    select.append("option").attr("value","filepath").html("Artifact Generator")
+    .each(function (d) {
+      var option = d3.select(this);
+      if (nodeData.kwargs[d["key"]]["scope"].includes("filepath")) {
+        option.attr("selected",true)
+      }
+     })
+    select.append("option").attr("value","dependencies").html("Requirement Generator")
+    .each(function (d) {
+      var option = d3.select(this);
+      if (nodeData.kwargs[d["key"]]["scope"].includes("dependencies")) {
+        option.attr("selected",true)
+      }
+     })
+    select.append("option").attr("value","split").html("Split Generator")
+    .each(function (d) {
+      var option = d3.select(this);
+      if (nodeData.kwargs[d["key"]]["scope"].includes("split")) {
+        option.attr("selected",true)
+      }
+     })
+    $(".node-param-scope").data("data", d3.entries(nodeData.kwargs)).select2()
+    .on('select2:opening select2:closing', function( event ) {
+          var $searchfield = $(this).parent().find('.select2-search__field');
+          $searchfield.prop('disabled', true);
+      })
+    .on('change', function(){
+      thisGraph.updateNodeParamScope.call(thisGraph, $(this).attr("paramname"), $(this).val(), nodeData)
+    });
+
+
   };
 
   /**** MAIN ****/
