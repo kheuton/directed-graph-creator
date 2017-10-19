@@ -70,8 +70,6 @@ document.onload = (function(d3, saveAs, Blob, undefined){
 
     thisGraph.drag = d3.behavior.drag()
           .origin(function(d){
-            console.log(d.x)
-            console.log(d.y)
             return {x: d.x, y: d.y};
           })
           .on("drag", function(args){
@@ -89,12 +87,17 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     // Activate node split selector
     $("#node-data-split").select2({
       tags: true,
-      placeholder: "Select a State",
+      placeholder: "Add argument names",
       multiple: true,
       allowClear: true,
       width: '100%'
     });
-    console.log('DONT SEE THIS MORE THAN ONCE')
+    $("#edge-data-dependency").select2({
+      tags: true,
+      placeholder: "Add function name",
+      allowClear: true,
+      width: '100%',
+    });
 
     // listen for key events
     d3.select(window).on("keydown", function(){
@@ -273,6 +276,9 @@ document.onload = (function(d3, saveAs, Blob, undefined){
       thisGraph.removeSelectFromEdge();
     }
     thisGraph.state.selectedEdge = edgeData;
+
+    thisGraph.updateEdgeDependencyText(edgeData);
+    thisGraph.updateEdgeDependencySelect(edgeData);
   };
 
   GraphCreator.prototype.replaceSelectNode = function(d3Node, nodeData){
@@ -632,9 +638,67 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     nodeData.kwargs[param]["scope"] = selectedValue;
   }
 
+  GraphCreator.prototype.updateEdgeDependencyText = function(edgeData) {
+
+    var sourceData = edgeData['source'];
+    var targetData = edgeData['target'];
+
+    var edgeText = "A function that takes in: "
+
+    // We take in the downsteam node kwargs to generate the upstream ones
+    for (var i = 0; i < sourceData.split.length; i++) {
+      edgeText += sourceData.split[i] + " "
+    }
+
+    edgeText += "and returns corresponding values for: "
+    for (var i = 0; i < targetData.split.length; i++) {
+      edgeText += targetData.split[i] + " "
+    }
+    d3.select("#edge-dependency-text").remove()
+    d3.select("#edgeDependencyDescription").append("text")
+      .attr("id", "edge-dependency-text").text(edgeText);
+  }
+
+  GraphCreator.prototype.updateEdgeDependencySelect = function(edgeData) {
+    var thisGraph = this;
+    var selector = d3.select("#edge-data-dependency");
+
+    // Rebuild the control cause i'm dumb
+    var currentDependencyGenerator = edgeData.dependencyGenerator;
+
+    // Construct data from the splits so we have options in the select element
+    var dependencyData = {'id': currentDependencyGenerator,
+                          'text': currentDependencyGenerator};
+
+    $("#edge-data-dependency").select2('destroy').off('change')
+    $("#edge-data-dependency").select2({
+      tags: true,
+      placeholder: "Add function name",
+      allowClear: true,
+      width: '100%',
+      // This adds the <option> elements that make the select work
+      data: dependencyData
+    });
+
+    $("#edge-data-dependency").on('change', function(){
+      thisGraph.updateEdgeDependency.call(thisGraph, edgeData)
+    });
+
+    $("#edge-data-dependency").val(currentDependencyGenerator).trigger('change')
+
+  }
+
+  GraphCreator.prototype.updateEdgeDependency = function( edgeData){
+
+      var dependencyGenerator =$("#edge-data-dependency").val();
+
+      edgeData.dependencyGenerator = dependencyGenerator;
+  }
+
   GraphCreator.prototype.updateNodeSplitSelect = function(nodeData){
       var thisGraph = this;
       var selector = d3.select("#node-data-split");
+
       // Rebuild the control cause i'm dumb
 
       var currentSplits = nodeData.split;
@@ -649,35 +713,29 @@ document.onload = (function(d3, saveAs, Blob, undefined){
           splitOptions.push(thisData)
       }
 
-      console.log('removin')
       $("#node-data-split").select2('destroy').off('change')
       $("#node-data-split").select2({
         tags: true,
-        placeholder: "Select a State",
+        placeholder: "Add argument names",
         multiple: true,
         allowClear: true,
         width: '100%',
-        data: l.splitOptions
+        // This adds the <option> elements that make the select work
+        data: splitOptions
       });
-
-
 
       $("#node-data-split").on('change', function(){
         thisGraph.updateNodeSplit.call(thisGraph, nodeData)
       });
 
-      console.log(currentSplits)
-      console.log(nodeData.title)
       $("#node-data-split").val(currentSplits).trigger('change')
-      console.log($("#node-data-split").val())
 
   }
 
   GraphCreator.prototype.updateNodeSplit = function( nodeData){
 
       var splits =$("#node-data-split").val();
-      console.log("GONNA CHANGE: "+nodeData.title)
-      console.log(splits)
+
       nodeData.split = splits;
   }
 
