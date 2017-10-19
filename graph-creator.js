@@ -363,12 +363,13 @@ document.onload = (function(d3, saveAs, Blob, undefined){
         placePad  =  5*curScale,
         useHW = curScale > 1 ? nodeBCR.width*0.71 : consts.nodeRadius*1.42;
     // replace with editableconent text
+    console.log(nodeBCR)
     var d3txt = thisGraph.svg.selectAll("foreignObject")
           .data([d])
           .enter()
           .append("foreignObject")
           .attr("x", nodeBCR.left + placePad )
-          .attr("y", nodeBCR.top + placePad)
+          .attr("y", nodeBCR.top - 150 +placePad)
           .attr("height", 2*useHW)
           .attr("width", useHW)
           .append("xhtml:p")
@@ -646,13 +647,13 @@ document.onload = (function(d3, saveAs, Blob, undefined){
     var edgeText = "A function that takes in: "
 
     // We take in the downsteam node kwargs to generate the upstream ones
-    for (var i = 0; i < sourceData.split.length; i++) {
-      edgeText += sourceData.split[i] + " "
+    for (var i = 0; i < targetData.split.length; i++) {
+      edgeText += targetData.split[i] + " "
     }
 
     edgeText += "and returns corresponding values for: "
-    for (var i = 0; i < targetData.split.length; i++) {
-      edgeText += targetData.split[i] + " "
+    for (var i = 0; i < sourceData.split.length; i++) {
+      edgeText += sourceData.split[i] + " "
     }
     d3.select("#edge-dependency-text").remove()
     d3.select("#edgeDependencyDescription").append("text")
